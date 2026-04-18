@@ -1,0 +1,127 @@
+-------------------------------------------------
+-- 🔮 CONFIG
+-------------------------------------------------
+
+local ESP_API = "https://postphlogistic-brian-aglow.ngrok-free.dev"
+
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local http = http_request or request
+if not http then return end
+
+-------------------------------------------------
+-- 📤 REGISTER
+-------------------------------------------------
+
+task.wait(1)
+
+local userId = tostring(player.UserId)
+local jobId = tostring(game.JobId)
+
+local registerUrl = ESP_API.."/register?userId="..userId.."&jobId="..jobId
+print("REGISTER:", registerUrl)
+
+local res = http({
+	Url = registerUrl,
+	Method = "GET",
+	Headers = {
+		["ngrok-skip-browser-warning"] = "true"
+	}
+})
+
+print("STATUS:", res.StatusCode)
+
+-------------------------------------------------
+-- 🔄 PING
+-------------------------------------------------
+
+task.spawn(function()
+	while true do
+		local url = ESP_API.."/ping?userId="..player.UserId
+
+		local res = http({
+			Url = url,
+			Method = "GET"
+		})
+
+		
+
+		task.wait(5)
+	end
+end)
+
+-------------------------------------------------
+-- 🔮 ESP GLOBAL
+-------------------------------------------------
+
+task.spawn(function()
+	while true do
+
+		local success, result = pcall(function()
+			return http({
+				Url = ESP_API.."/users",
+				Method = "GET"
+			})
+		end)
+
+		if success and result and result.Body then
+			local ok, data = pcall(function()
+				return HttpService:JSONDecode(result.Body)
+			end)
+
+			if ok and typeof(data) == "table" then
+
+				local valid = {}
+
+				for _, u in ipairs(data) do
+					valid[tostring(u.userId)] = true
+				end
+
+				for _, plr in ipairs(Players:GetPlayers()) do
+					if plr ~= player and valid[tostring(plr.UserId)] then
+
+						local char = plr.Character
+						if char and not char:FindFirstChild("ESP_DONE") then
+
+							local flag = Instance.new("BoolValue")
+							flag.Name = "ESP_DONE"
+							flag.Parent = char
+
+							-- ESP
+							local highlight = Instance.new("Highlight")
+							highlight.FillColor = Color3.fromRGB(170, 0, 255)
+							highlight.OutlineColor = Color3.fromRGB(255,255,255)
+							highlight.FillTransparency = 0.3
+							highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+							highlight.Parent = char
+
+							-- TAG
+							local head = char:FindFirstChild("Head")
+							if head then
+								local tag = Instance.new("BillboardGui")
+								tag.Size = UDim2.new(0,200,0,50)
+								tag.StudsOffset = Vector3.new(0,2.5,0)
+								tag.AlwaysOnTop = true
+								tag.Parent = head
+
+								local text = Instance.new("TextLabel")
+								text.Size = UDim2.new(1,0,1,0)
+								text.BackgroundTransparency = 1
+								text.Text = "GAMER USER"
+								text.TextColor3 = Color3.fromRGB(170,0,255)
+								text.TextStrokeTransparency = 0
+								text.Font = Enum.Font.GothamBold
+								text.TextScaled = true
+								text.Parent = tag
+							end
+						end
+					end
+				end
+			end
+		end
+
+		task.wait(1)
+	end
+end)
