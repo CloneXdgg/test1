@@ -21,7 +21,6 @@ local userId = tostring(player.UserId)
 local jobId = tostring(game.JobId)
 
 local registerUrl = ESP_API.."/register?userId="..userId.."&jobId="..jobId
-print("REGISTER:", registerUrl)
 
 local res = http({
 	Url = registerUrl,
@@ -30,8 +29,6 @@ local res = http({
 		["ngrok-skip-browser-warning"] = "true"
 	}
 })
-
-print("STATUS:", res.StatusCode)
 
 -------------------------------------------------
 -- 🔄 PING
@@ -45,8 +42,6 @@ task.spawn(function()
 			Url = url,
 			Method = "GET"
 		})
-
-		
 
 		task.wait(5)
 	end
